@@ -1,0 +1,13 @@
+extend layout
+
+block content
+	div.row
+		div.col-md-4
+			form.form(method="post", role="form")
+				div.form-group.required
+					label.control-label(for="username") Name:
+					input.form-control#username(type="text", name="username", required)
+				div.form-group.required
+					label.control-label(for="password") Password:
+					input.form-control#password(type="password", name="password", required)
+				input.btn.btn-default#submit(name="submit", type="submit", value="Login")
