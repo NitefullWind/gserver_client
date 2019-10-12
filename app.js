@@ -11,6 +11,8 @@ var session = require('express-session')
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 
+var flash = require('./project/flash')
+
 var app = express();
 
 // session 必须在路由之前，否则路由中无法使用session
@@ -22,6 +24,8 @@ app.use(session({
         maxAge: 60*1000
     }
 }))
+
+app.use(flash())
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
