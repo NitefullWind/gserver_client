@@ -20,4 +20,7 @@ html
                 div.collapse.navbar-collapse#bs-example-navbar-collapse-1
                     ul.nav.navbar-nav.navbar-right
         div.container
+            if alerts
+                each alert in alerts
+                    div.alert.alert-danger(role="alert") #{alert.msg}
             block content

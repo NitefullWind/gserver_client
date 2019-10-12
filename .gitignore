@@ -1,4 +1,8 @@
 .vscode
+config/*
+public/javascripts/bootstrap.min.js
+public/javascripts/jquery.min.js
+public/stylesheets/bootstrap.min.css
 
 # Logs
 logs
@@ -79,7 +83,6 @@ typings/
 
 # gatsby files
 .cache/
-public
 
 # vuepress build output
 .vuepress/dist
