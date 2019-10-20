@@ -1,7 +1,11 @@
 extends layout
 
-block content
-  input(type="text", readonly="true")
+block head
+    script(language="javascript", src="/javascripts/socket.io.js")
+    script(language="javascript", src="/javascripts/gserver.js")
 
-  input(type="text")
-  button Send
+block content
+    input(type="text", readonly="true")
+
+    input(type="text")
+    button Send

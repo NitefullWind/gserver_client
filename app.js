@@ -12,8 +12,11 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 
 var flash = require('./project/flash')
+var config = require('./project/config');
 
 var app = express();
+
+require('./project/socket_server')(config.get('websocket.port'), config.get('websocket.tsPort'), config.get('websocket.tsHost'))
 
 // session 必须在路由之前，否则路由中无法使用session
 app.use(session({
@@ -25,6 +28,7 @@ app.use(session({
     }
 }))
 
+// 使用消息闪现
 app.use(flash())
 
 // view engine setup
