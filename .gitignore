@@ -1,9 +1,5 @@
 .vscode
 config/*
-public/javascripts/bootstrap.min.js
-public/javascripts/jquery.min.js
-public/stylesheets/bootstrap.min.css
-public/stylesheets/bootstrap.min.css.map
 
 # Logs
 logs
