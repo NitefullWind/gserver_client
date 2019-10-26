@@ -1,5 +1,6 @@
 .vscode
 config/*
+project/proto/*.js
 
 # Logs
 logs
