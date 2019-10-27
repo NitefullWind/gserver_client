@@ -13,7 +13,8 @@ var usersRouter = require('./routes/users');
 
 var flash = require('./project/flash')
 var config = require('./project/config')
-var socket_server = require('./project/socket_server')(config.get('websocket.port'), config.get('websocket.tsPort'), config.get('websocket.tsHost'))
+var gameserver = require('./project/socket_server')(config.get('gameserver.port'), config.get('gameserver.tsPort'), config.get('gameserver.tsHost'))
+var chatserver = require('./project/socket_server')(config.get('chatserver.port'), config.get('chatserver.tsPort'), config.get('chatserver.tsHost'))
 
 var app = express();
 
@@ -23,7 +24,7 @@ app.use(session({
     saveUninitialized: false,
     resave: false,
     cookie: {
-        maxAge: 60*1000
+        maxAge: config.get('session.maxAge')
     }
 }))
 

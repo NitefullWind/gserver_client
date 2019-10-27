@@ -1,6 +1,7 @@
 .vscode
 config/*
 project/proto/*.js
+public/javascripts/gserverpb.js
 
 # Logs
 logs

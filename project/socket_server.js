@@ -1,6 +1,5 @@
 var logger = require('./logger').getLogger("socket_server")
 var GServer = require('./gserver')
-var PlayerPB = require('./proto/playerpb_pb')
 
 /**
  * 创建一个WebSocket服务器，并将数据转发到Tcp服务器
@@ -17,11 +16,6 @@ function SocketServer(wsPort, tsPort, tsHost="127.0.0.1") {
         var tcpSocket = require('net').Socket()
         tcpSocket.connect(tsPort, tsHost, () => {
             logger.debug(`tcpsocket connecting to ${tsHost}:${tsPort}`)
-            
-            let player = new PlayerPB.PlayerPB()
-            player.setName(socket.id)
-
-            tcpSocket.write(GServer.encodeData(GServer.Command.LOGIN, player.serializeBinary()))
         });
 
         socket.on('error', (error) => {
@@ -41,6 +35,11 @@ function SocketServer(wsPort, tsPort, tsHost="127.0.0.1") {
             })
         });
 
+        socket.on('gserver_data', (cmd, data) => {
+            let dataArray = new Uint8Array(data);
+            tcpSocket.write(GServer.encodeData(cmd, new Buffer(dataArray)))
+        })
+
         tcpSocket.on('close', (hadError) => {
             if(hadError) {
                 logger.debug("tcpsocket closed by error")
@@ -52,13 +51,17 @@ function SocketServer(wsPort, tsPort, tsHost="127.0.0.1") {
 
         tcpSocket.on('connect', () => {
             logger.debug("tcpsocket connected")
+            socket.emit('connect_tcp')
         });
 
         tcpSocket.on('data', (data) => {
             logger.debug("tcpsocket receive data: ", data)
             let gserverData = GServer.decodeData(data)
-            logger.debug("Header:", gserverData.header)
-            logger.debug("Message:", gserverData.message)
+            let header = gserverData.header
+            let message = gserverData.message
+            logger.debug("Header:", header)
+            logger.debug("Message:", message)
+            socket.emit('gserver_data', header.rspcode, header.cmd, message)
         });
 
         tcpSocket.on('error', (error) => {
