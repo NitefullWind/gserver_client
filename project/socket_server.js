@@ -35,9 +35,13 @@ function SocketServer(wsPort, tsPort, tsHost="127.0.0.1") {
             })
         });
 
+        /**
+         * websocket收到数据，编码后发给tcp服务器
+         */
         socket.on('gserver_data', (cmd, data) => {
-            let dataArray = new Uint8Array(data);
-            tcpSocket.write(GServer.encodeData(cmd, new Buffer(dataArray)))
+            logger.debug("websocket receive data:", data)
+            let dataArray = new Uint8Array(Object.values(data));
+            tcpSocket.write(GServer.encodeData(cmd, Buffer.from(dataArray)))
         })
 
         tcpSocket.on('close', (hadError) => {
@@ -54,6 +58,9 @@ function SocketServer(wsPort, tsPort, tsHost="127.0.0.1") {
             socket.emit('connect_tcp')
         });
 
+        /**
+         * TCP服务器收到数据，解析后转发给websocket
+         */
         tcpSocket.on('data', (data) => {
             logger.debug("tcpsocket receive data: ", data)
             let gserverData = GServer.decodeData(data)

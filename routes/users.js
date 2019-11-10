@@ -33,4 +33,19 @@ router.post('/login', function(req, res, next) {
     }
 });
 
+router.get('/userinfo', function(req, res, next) {
+    if(req.session.username) {
+        res.json({
+            username: req.session.username,
+            message: '',
+            retcode: 200
+        })
+    } else {
+        res.json({
+            message: '用户未登陆',
+            retcode: 0
+        })
+    }
+});
+
 module.exports = router;

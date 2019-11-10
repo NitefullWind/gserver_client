@@ -1,18 +1,6 @@
-$(function() {
-    let clientGame = new ClientGame("www.nitefullwind.cn:3001")
-    let clientChat = new ClientChat("www.nitefullwind.cn:3002")
-
-    clientGame.setClientChat(clientChat)
-    clientGame.runCommand('login')
-
-    $('#btn_send').click(() => {
-        console.log($('#input_message').val())
-    })
-    
-    $('#btn_connect_server').click(() => {
-    })
-})
-
+/**
+ * GServer 定义字段
+ */
 var GServer = {
     Command: 
     {
@@ -38,15 +26,12 @@ function ClientChat(url, name=url)
 	ClientGServer.call(this, url, name);
     this.initSocket(url)
 
-	this.registerCommand("sendmsg", async () => {
-		let messageType = 2;
-		let roomId = 0;
-		let msg = "test message";
+	this.registerCommand("sendmsg", async (messageType, receiverId, msg) => {
 		let msgPB = new proto.gserver.MessagePB.MessagePB();
-		msgPB.setReceiverId(roomId);
-		if(messageType == "1") {
+		msgPB.setReceiverId(receiverId);
+		if(messageType == 1) {
 			msgPB.setMessagetype(proto.gserver.MessagePB.MessageType.MT_PRIVATE_CHAT);
-		} else if(messageType == "2") {
+		} else if(messageType == 2) {
 			msgPB.setMessagetype(proto.gserver.MessagePB.MessageType.MT_GROUP_CHAT);
 		}
 		msgPB.setDatatype(proto.gserver.MessagePB.DataType.DT_TEXT);
@@ -86,9 +71,7 @@ function ClientGame(url, name=url)
 		this.client_chat = clientChat;
 	}
 	
-	this.registerCommand("login", async () => {
-		let name = "test user name";
-		let password = "";
+	this.registerCommand("login", async (name, password) => {
 		let playerpb = new proto.gserver.PlayerPB();
 		playerpb.setName(name);
 		playerpb.setPassword(password);
@@ -128,8 +111,7 @@ function ClientGame(url, name=url)
 		let buf = roompb.serializeBinary();
 		this.send(GServer.Command.UPDATEROOM, buf);
 	});
-	this.registerCommand("joinroom", async () => {
-		let roomId = 0;
+	this.registerCommand("joinroom", async (roomId) => {
 		let roompb = new RoomPB.RoomPB();
 		roompb.setId(roomId);
 		let buf = roompb.serializeBinary();
@@ -151,7 +133,8 @@ function ClientGServer(name) {
     var socket
 
     this.initSocket = (url) => {
-        socket = io(url)
+		socket = io(url)
+		socket.binaryType = 'arraybuffer'
 
         socket.on('connect', () => {
             console.log(`socket connect id: ${socket.id}`)
@@ -214,13 +197,16 @@ function ClientGServer(name) {
 		}
 		return false;
 	}
-	this.runCommand = async (cmd) => {
+	/**
+	 * 调用注册过的命令
+	 */
+	this.runCommand = async (cmd, ...args) => {
 		let func = this.command[cmd];
 		if(typeof(func) === "function") {
 			if(func.constructor.name === "AsyncFunction") { // 异步函数
-				await func();
+				await func(...args);
 			} else {
-				func();
+				func(...args);
 			}
 		} else {
 			console.log("未注册的命令: ", cmd);
@@ -262,4 +248,35 @@ function ClientGServer(name) {
 	this.registerRspHandle(GServer.Command.EXITROOM, (rspcode, message) => {
 		console.log("[Client](", this.name, ") 退出房间成功");
 	});
+}
+
+let clientGame = new ClientGame("www.nitefullwind.cn:3001")
+let clientChat = new ClientChat("www.nitefullwind.cn:3002")
+clientGame.setClientChat(clientChat)
+
+$(function() {
+    $('#btn_send').click(() => {
+        console.log($('#input_message').val())
+    })
+    
+    $('#btn_connect_server').click(() => {
+	})
+	
+	getUserInfo()
+})
+
+function getUserInfo() {
+	$.ajax({
+		type: 'GET',
+		url: 'users/userinfo',
+		dataType: 'json',
+		success: (data) => {
+			console.log(typeof(data))
+			if(data['retcode'] == 200) {
+				clientGame.runCommand('login', data['username'])
+			} else {
+				console.log('ger user info fail: ', data['message'])
+			}
+		}
+	})
 }
