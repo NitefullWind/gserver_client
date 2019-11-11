@@ -27,7 +27,7 @@ function ClientChat(url, name=url)
     this.initSocket(url)
 
 	this.registerCommand("sendmsg", async (messageType, receiverId, msg) => {
-		let msgPB = new proto.gserver.MessagePB.MessagePB();
+		let msgPB = new proto.gserver.MessagePB();
 		msgPB.setReceiverId(receiverId);
 		if(messageType == 1) {
 			msgPB.setMessagetype(proto.gserver.MessagePB.MessageType.MT_PRIVATE_CHAT);
@@ -44,7 +44,7 @@ function ClientChat(url, name=url)
 		if(header.datalen == 0) {
 			console.log("[Client](", this.name, ") 消息发送成功");
 		} else {
-			let msgPB = MessagePB.MessagePB.deserializeBinary(message);
+			let msgPB = proto.gserver.MessagePB.deserializeBinary(message);
 			if (msgPB.getDatatype() == proto.gserver.MessagePB.DataType.DT_TEXT) {
 				let sender = "Unkonw";
 				if(msgPB.hasSender()) {
@@ -256,7 +256,7 @@ clientGame.setClientChat(clientChat)
 
 $(function() {
     $('#btn_send').click(() => {
-        console.log($('#input_message').val())
+		clientChat.runCommand('sendmsg', 2, '1', $('#input_message').val())
     })
     
     $('#btn_connect_server').click(() => {
