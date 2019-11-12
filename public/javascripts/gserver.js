@@ -12,6 +12,7 @@ var GServer = {
         JOINROOM: 102,
         EXITROOM: 103,
         SENDMSG: 200,
+        RECVMSG: 201,
     },
     
     RspCode:
@@ -40,10 +41,12 @@ function ClientChat(url, name=url)
 		this.send(GServer.Command.SENDMSG, buf);
 	});
 	
-	this.registerRspHandle(GServer.Command.SENDMSG, (header, message) => {
-		if(header.datalen == 0) {
+	// 发送消息响应
+	this.registerRspHandle(GServer.Command.SENDMSG, (rspcode, message) => {
+		if(rspcode == GServer.RspCode.SUCCESS) {
 			console.log("[Client](", this.name, ") 消息发送成功");
 		} else {
+			console.log("[Client](", this.name, ") 消息发送失败：", message);
 			let msgPB = proto.gserver.MessagePB.deserializeBinary(message);
 			if (msgPB.getDatatype() == proto.gserver.MessagePB.DataType.DT_TEXT) {
 				let sender = "Unkonw";
@@ -56,6 +59,26 @@ function ClientChat(url, name=url)
 				console.log("Receive message: ")
 				console.log(msgPB);
 			}
+		}
+	});
+
+	// 收到消息响应
+	this.registerRspHandle(GServer.Command.RECVMSG, (rspcode, message) => {
+		if(rspcode == GServer.RspCode.SUCCESS) {
+			let msgPB = proto.gserver.MessagePB.deserializeBinary(message);
+			if (msgPB.getDatatype() == proto.gserver.MessagePB.DataType.DT_TEXT) {
+				let sender = "Unkonw";
+				if(msgPB.hasSender()) {
+					sender = msgPB.getSender().getName();
+				}
+				console.log("Receive message from ", sender, ":")
+				console.log(msgPB.getData());
+			} else {
+				console.log("Receive message: ")
+				console.log(msgPB);
+			}
+		} else {
+			console.log("[Client](", this.name, ") 消息接收失败：", message);
 		}
 	});
 }
@@ -275,7 +298,7 @@ function getUserInfo() {
 			if(data['retcode'] == 200) {
 				clientGame.runCommand('login', data['username'])
 			} else {
-				console.log('ger user info fail: ', data['message'])
+				console.log('get user info fail: ', data['message'])
 			}
 		}
 	})
