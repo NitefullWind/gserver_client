@@ -17,7 +17,14 @@ block content
                     a(href="#muenCreateRoom", data-toggle="tab") 创建房间
         div.col-md-10.tab-content
             div.tab-pane.fade.active.in#menuViewRoom
-                ul.nav.nav-pills.nav-stacked#roomList
+                div#menuViewRoomMsgDiv
+                div.row
+                    button.btn.btn-primary#refreshRoomList(type="button") 刷新
+                div.col-md-6
+                    ul.nav.nav-pills.nav-stacked#roomList
+                div.col-md-6
+                    div#roomDetailInfo
+
 
             div.tab-pane.fade#muenCreateRoom
                 div#menuCreateRoomMsgDiv

@@ -117,8 +117,7 @@ function ClientGame(url, name=url)
         }
     });
     this.registerCommand("logout", () => {
-        var buf = Buffer.allocUnsafe(0);
-        this.send(GServer.Command.LOGOUT, buf);
+        this.send(GServer.Command.LOGOUT, new Uint8Array());
         if(this.client_chat) {
             this.client_chat.send(GServer.Command.LOGOUT, buf);
         }
@@ -135,7 +134,7 @@ function ClientGame(url, name=url)
         let name = "test room name";
         let description = "";
         let password = "";
-        let roompb = new RoomPB.RoomPB();
+        let roompb = new proto.gserver.RoomPB();
         roompb.setId(roomId);
         roompb.setName(name);
         roompb.setDescription(description);
@@ -144,31 +143,61 @@ function ClientGame(url, name=url)
         this.send(GServer.Command.UPDATEROOM, buf);
     });
     this.registerCommand("joinroom", async (roomId) => {
-        let roompb = new RoomPB.RoomPB();
+        let roompb = new proto.gserver.RoomPB();
         roompb.setId(roomId);
         let buf = roompb.serializeBinary();
         this.send(GServer.Command.JOINROOM, buf);
     });
-    this.registerCommand("exitroom", async () => {
-        let roomId = 0;
-        let roompb = new RoomPB.RoomPB();
+    this.registerCommand("exitroom", async (roomId) => {
+        let roompb = new proto.gserver.RoomPB();
         roompb.setId(roomId);
         let buf = roompb.serializeBinary();
         this.send(GServer.Command.EXITROOM, buf);
     });
+    this.registerCommand("getroomlist", async () => {
+        this.send(GServer.Command.ROOMLIST, new Uint8Array());
+    });
+    this.registerCommand("getroominfo", async (roomId) => {
+        let roompb = new proto.gserver.RoomPB();
+        roompb.setId(roomId);
+        let buf = roompb.serializeBinary();
+        this.send(GServer.Command.ROOMINFO, buf);
+    });
     
-    // 登陆响应理函数
+    // 登陆响应函数
     this.registerRspHandle(GServer.Command.LOGIN, (rspcode, message) => {
         if(GServer.RspCode.SUCCESS == rspcode) {
             console.log("[Client](", this.name, ") 登陆成功");
+            this.runCommand('getroomlist')
+        } else {
+            console.log("[Client](", this.name, ") 登陆失败：", UTF8Bytes2String(message));
+        }
+    });
+    // 获取房间列表响应函数
+    this.registerRspHandle(GServer.Command.ROOMLIST, (rspcode, message) => {
+        if(GServer.RspCode.SUCCESS == rspcode) {
+            console.log("[Client](", this.name, ") 获取房间列表成功");
             let roomPBList = proto.gserver.RoomPBList.deserializeBinary(message).getRoompbList();
             if(roomPBList.length == 0) {
-                showMsg("房间列表为空", "warning", "menuViewRoom")
+                showMsg("房间列表为空", "warning", "menuViewRoomMsgDiv")
             } else {		
                 showGameRoomList(roomPBList)
             }
         } else {
-            console.log("[Client](", this.name, ") 登陆失败：", UTF8Bytes2String(message));
+            console.log("[Client](", this.name, ") 获取房间列表失败：", UTF8Bytes2String(message));
+            showMsg("获取房间列表失败", "danger", "menuViewRoomMsgDiv")
+        }
+    });
+    // 获取房间列表响应函数
+    this.registerRspHandle(GServer.Command.ROOMINFO, (rspcode, message) => {
+        if(GServer.RspCode.SUCCESS == rspcode) {
+            console.log("[Client](", this.name, ") 获取房间信息成功");
+            let roomPB = proto.gserver.RoomPB.deserializeBinary(message);
+            console.log(roomPB)
+            showRoomInfo(roomPB)
+        } else {
+            console.log("[Client](", this.name, ") 获取房间信息失败：", UTF8Bytes2String(message));
+            showMsg(`获取房间信息失败：${UTF8Bytes2String(message)}`, "danger", "menuViewRoomMsgDiv")
         }
     });
 }
@@ -315,8 +344,16 @@ $(function() {
     $('#btn_connect_server').click(() => {
     })
 
+    $('#refreshRoomList').click(() => {
+        clientGame.runCommand('getroomlist')
+    })
+
     $('#btnCreateRoom').click(() => {
         createGameRoom()
+    })
+
+    $('#roomList').on('click', 'a', (e) => {
+        clientGame.runCommand('getroominfo', $(e.target).data('id'))
     })
     
     getUserInfo()
@@ -343,7 +380,7 @@ async function createGameRoom() {
 async function showGameRoomList(roomPBList) {
     $('#roomList').html('')
     for(let roomPB of roomPBList) {
-        $('#roomList').append(`<li role="presentation"><a href="#">${roomPB.getName()}</a></li>`)
+        $('#roomList').append(`<li role="presentation"><a href="#" data-id="${roomPB.getId()}">${roomPB.getName()}</a></li>`)
     }
 }
 
@@ -380,6 +417,15 @@ async function showMsg(msg, catalogy='danger', div_id='top_div', prepend=false) 
     } else {
         $(`#${div_id}`).html(msg_html)
     }
+}
+
+/**
+ * 展示房间信息
+ * @param {RoomPB} roomPB 房间信息
+ */
+async function showRoomInfo(roomPB) {
+    let roomInfoHtml = `<p>名称：${roomPB.getName()}</p><p>房主：${roomPB.getOwner().getName()}</p><p>描述：${roomPB.getDescription()}</p>`
+    $('#roomDetailInfo').html(roomInfoHtml)
 }
 
 /**
