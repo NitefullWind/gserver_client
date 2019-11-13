@@ -21,6 +21,7 @@ html
                 div.collapse.navbar-collapse#bs-example-navbar-collapse-1
                     ul.nav.navbar-nav.navbar-right
         div.container
+            div#top_div
             each flash in flash_massages
                 div(class="alert alert-#{flash.catalogy}", role="alert") #{flash.msg}
             block content

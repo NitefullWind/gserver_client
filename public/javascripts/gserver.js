@@ -22,6 +22,11 @@ var GServer = {
     }
 }
 
+/**
+ * Chat Client
+ * @param {string} url 服务器url
+ * @param {string} name 客户端名称 默认与url相同
+ */
 function ClientChat(url, name=url)
 {
 	ClientGServer.call(this, url, name);
@@ -84,6 +89,11 @@ function ClientChat(url, name=url)
 }
 ClientChat.prototype = new ClientGServer();
 
+/**
+ * Game Client
+ * @param {string} url 服务器url
+ * @param {string} name 客户端名称 默认与url相同
+ */
 function ClientGame(url, name=url)
 {
     ClientGServer.call(this, name);
@@ -147,9 +157,30 @@ function ClientGame(url, name=url)
 		let buf = roompb.serializeBinary();
 		this.send(GServer.Command.EXITROOM, buf);
 	});
+	
+	// 登陆响应理函数
+	this.registerRspHandle(GServer.Command.LOGIN, (rspcode, message) => {
+		if(GServer.RspCode.SUCCESS == rspcode) {
+			console.log("[Client](", this.name, ") 登陆成功");
+			let roomPBList = proto.gserver.RoomPBList.deserializeBinary(message).getRoompbList();
+			if(roomPBList.length == 0) {
+				showMsg("房间列表为空", "info", 'menu_view_room')
+			} else {		
+				for(let roomPB of roomPBList) {
+					console.log(roomPB.array);
+				}
+			}
+		} else {
+			console.log("[Client](", this.name, ") 登陆失败：", message);
+		}
+	});
 }
 ClientGame.prototype = new ClientGServer();
 
+/**
+ * 客户端基类
+ * @param {string} name 客户端名称
+ */
 function ClientGServer(name) {
     this.name = name
 
@@ -165,29 +196,30 @@ function ClientGServer(name) {
         
         socket.on('connect_error', () => {
             console.log(`socket connect_error`)
+			showMsg('服务器连接时出错')
         })
     
         socket.on('connect_timeout', () => {
             console.log(`socket connect_timeout`)
+			showMsg('服务器连接超时')
         })
     
         socket.on('error', () => {
             console.log(`socket error`)
+			showMsg('服务器发生了错误')
         })
     
-        socket.on('disconnect', () => {
-            console.log("socket disconnect")
+        socket.on('disconnect', (reason) => {
+			console.log("socket disconnect: ", reason)
+			showMsg('服务器断开了连接')
         })
     
         socket.on('reconnect', () => {
             console.log(`socket reconnect`)
-        })
-    
+		})
+
         socket.on('connect_tcp', () => {
             console.log('on connect_tcp')
-            
-            let player = new proto.gserver.PlayerPB()
-            player.setName(socket.id)
         })
     
         socket.on('gserver_data', (rspcode, cmd, data) => {
@@ -244,10 +276,10 @@ function ClientGServer(name) {
 		this.rspHandle[cmd] = func;
 	}
 	this.registerRspHandle(GServer.Command.LOGIN, (rspcode, message) => {
-		console.log("[Client](", this.name, ") 登陆成功");;
-        let roomPBList = proto.gserver.RoomPBList.deserializeBinary(message).getRoompbList();
-		for(let roomPB of roomPBList) {
-			console.log(roomPB.array);
+		if(GServer.RspCode.SUCCESS == rspcode) {
+			console.log("[Client](", this.name, ") 登陆成功");
+		} else {
+			console.log("[Client](", this.name, ") 登陆失败：", message);
 		}
 	});
 	this.registerRspHandle(GServer.Command.LOGOUT, (rspcode, message) => {
@@ -302,4 +334,14 @@ function getUserInfo() {
 			}
 		}
 	})
+}
+
+/**
+ * 在页面顶部展示一条消息
+ * @param {string} msg 消息内容
+ * @param {string} catalogy 消息分类 可选值：success, info, warning, danger 默认为danger
+ * @param {string} div_id 所属div的id
+ */
+function showMsg(msg, catalogy='danger', div_id='top_div') {
+	$(`#${div_id}`).html(`<div class="alert alert-${catalogy}" role="alert">${msg}</div>`)
 }
