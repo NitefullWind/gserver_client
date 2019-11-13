@@ -4,18 +4,37 @@ block head
     script(language="javascript", src="/javascripts/socket.io.js")
     script(language="javascript", src="/javascripts/gserverpb.js")
     script(language="javascript", src="/javascripts/gserver.js")
+    script(language="javascript", src="/javascripts/encoding-indexes.js")
+    script(language="javascript", src="/javascripts/encoding.js")
 
 block content
     div.row
         div.col-md-2
             ul.nav.nav-pills.nav-stacked
                 li.active(role="presentation")
-                    a(href="#menu_view_room", data-toggle="tab") 浏览房间
+                    a(href="#menuViewRoom", data-toggle="tab") 浏览房间
                 li(role="presentation")
-                    a(href="#muen_create_room", data-toggle="tab") 创建房间
+                    a(href="#muenCreateRoom", data-toggle="tab") 创建房间
         div.col-md-10.tab-content
-            div.tab-pane.fade.active.in#menu_view_room
-            div.tab-pane.fade#muen_create_room muen_create_room
+            div.tab-pane.fade.active.in#menuViewRoom
+                ul.nav.nav-pills.nav-stacked#roomList
+
+            div.tab-pane.fade#muenCreateRoom
+                div#menuCreateRoomMsgDiv
+                form.form-horizontal(role="form")
+                    div.form-group
+                    label.control-label(for="roomName") 名称
+                    div
+                        input.form-control.input_not_empty#roomName(name="roomName", type="text")
+                div.form-group
+                    label.control-label(for="roomPassword") 密码
+                    div
+                        input.form-control#roomPassword(name="roomPassword", type="password")
+                div.form-group
+                    label.control-label(for="roomDescription") 描述
+                    div
+                        textarea.form-control.input_not_empty#roomDescription(name="roomDescription", rows="8")
+                button.btn.btn-primary#btnCreateRoom(type="button") 创建
     //- input(type="text", readonly="true")
 
     //- input#input_message(type="text")

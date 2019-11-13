@@ -19,7 +19,6 @@ router.post('/login', function(req, res, next) {
             }
             if(pwd == password) {
                 req.session.username = req.body.username
-                req.flash("登录成功", "success")
                 res.redirect('/')
             } else {
                 req.flash("用户名或密码错误", "danger")
