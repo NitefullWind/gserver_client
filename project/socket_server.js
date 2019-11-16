@@ -11,6 +11,8 @@ function SocketServer(wsPort, tsPort, tsHost="127.0.0.1") {
     var webSocket = require("socket.io")(wsPort)
         
     webSocket.on('connection', function(socket) {
+        var _tcpRecvBuffer = Buffer.alloc(0)
+
         logger.debug("websocket connected")
 
         var tcpSocket = require('net').Socket()
@@ -62,13 +64,25 @@ function SocketServer(wsPort, tsPort, tsHost="127.0.0.1") {
          * TCP服务器收到数据，解析后转发给websocket
          */
         tcpSocket.on('data', (data) => {
-            logger.debug("tcpsocket receive data: ", data)
-            let gserverData = GServer.decodeData(data)
-            let header = gserverData.header
-            let message = gserverData.message
-            logger.debug("Header:", header)
-            logger.debug("Message:", message)
-            socket.emit('gserver_data', header.rspcode, header.cmd, message)
+            logger.debug("tcpsocket receive data: ", typeof(data), data)
+            // 将新数据拼接到之前未处理数据中
+            data = Buffer.concat([_tcpRecvBuffer, data], _tcpRecvBuffer.length + data.length)                         //!WARNING _tcpRecvBuffer是否线程安全
+            do {
+                // let gserverData = GServer.decodeData(data)
+                // let header = gserverData.header
+                // let message = gserverData.message
+                let parseResult = GServer.parseMessageHeader(data)
+                data = parseResult.data
+                if(parseResult.success) {
+                    let header = parseResult.header
+                    let message = parseResult.message
+                    logger.debug("Header:", header)
+                    logger.debug("Message:", message)
+                    socket.emit('gserver_data', header.rspcode, header.cmd, message)
+                } else {
+                    logger.error('GServer.parseMessageHeader error: ', parseResult.message)
+                }
+            } while (data.length >= GServer.MessageHeaderLength);
         });
 
         tcpSocket.on('error', (error) => {

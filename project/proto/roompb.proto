@@ -4,12 +4,23 @@ import "playerpb.proto";
 package gserver;
 
 message RoomPB {
+	enum RoomType {
+		RT_UNKNOWN = 0;
+		RT_PRIVITE = 1;		// 私有的
+		RT_PUBLIC = 2;		// 公开的
+	}
+
 	int32 id = 1;
 	string name = 2;
 	string description = 3;
 	string password = 4;
 	PlayerPB owner = 5;				// 房间拥有者
 	repeated PlayerPB players = 6;	// 房间中的玩家
+	string serverIP = 7;			// 房间所在服务器ip
+	int32 serverPort = 8;			// 房间所在服务器端口
+	bool hasPassword = 9;			// 是否有密码
+	int32 customID = 10;			// 自定义ID，比如用于标记聊天房间所属游戏房间的ID
+	RoomPB relatedRoom = 11;		// 关联房间，比如用于存储游戏房间的聊天房间信息
 }
 
 message RoomPBList {

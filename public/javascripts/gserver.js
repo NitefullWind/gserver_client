@@ -200,6 +200,17 @@ function ClientGame(url, name=url)
             showMsg(`获取房间信息失败：${UTF8Bytes2String(message)}`, "danger", "menuViewRoomMsgDiv")
         }
     });
+    // 加入房间响应函数
+    this.registerRspHandle(GServer.Command.JOINROOM, (rspcode, message) => {
+        console.log("[Client](", this.name, ") 加入房间成功");
+        if(GServer.RspCode.SUCCESS == rspcode) {
+            let roomPB = proto.gserver.RoomPB.deserializeBinary(message);
+            console.log(roomPB);
+        } else {
+            let errmsg = `加入房间失败：${UTF8Bytes2String(message)}`
+            alert(errmsg)
+        }
+    });
 }
 ClientGame.prototype = new ClientGServer();
 
@@ -318,7 +329,7 @@ function ClientGServer(name) {
         }
     });
     this.registerRspHandle(GServer.Command.UPDATEROOM, (rspcode, message) => {
-        console.log("[Client](", this.name, ") 修改房间信息登陆成功");
+        console.log("[Client](", this.name, ") 修改房间信息成功");
         let roomPB = proto.gserver.RoomPB.deserializeBinary(message);
         console.log(roomPB);
     });
