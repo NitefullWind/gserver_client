@@ -35,14 +35,14 @@ function ClientChat(url, name=url)
     this.initSocket(url)
 
     this.registerCommand("sendmsg", async (messageType, receiverId, msg) => {
-        let msgPB = new proto.gserver.MessagePB();
+        let msgPB = new proto.gserver.protobuf.MessagePB();
         msgPB.setReceiverId(receiverId);
         if(messageType == 1) {
-            msgPB.setMessagetype(proto.gserver.MessagePB.MessageType.MT_PRIVATE_CHAT);
+            msgPB.setMessagetype(proto.gserver.protobuf.MessagePB.MessageType.MT_PRIVATE_CHAT);
         } else if(messageType == 2) {
-            msgPB.setMessagetype(proto.gserver.MessagePB.MessageType.MT_GROUP_CHAT);
+            msgPB.setMessagetype(proto.gserver.protobuf.MessagePB.MessageType.MT_GROUP_CHAT);
         }
-        msgPB.setDatatype(proto.gserver.MessagePB.DataType.DT_TEXT);
+        msgPB.setDatatype(proto.gserver.protobuf.MessagePB.DataType.DT_TEXT);
         msgPB.setData(msg);
         let buf = msgPB.serializeBinary();
         this.send(GServer.Command.SENDMSG, buf);
@@ -54,8 +54,8 @@ function ClientChat(url, name=url)
             console.log("[Client](", this.name, ") 消息发送成功");
         } else {
             console.log("[Client](", this.name, ") 消息发送失败：", UTF8Bytes2String(message));
-            let msgPB = proto.gserver.MessagePB.deserializeBinary(message);
-            if (msgPB.getDatatype() == proto.gserver.MessagePB.DataType.DT_TEXT) {
+            let msgPB = proto.gserver.protobuf.MessagePB.deserializeBinary(message);
+            if (msgPB.getDatatype() == proto.gserver.protobuf.MessagePB.DataType.DT_TEXT) {
                 let sender = "Unkonw";
                 if(msgPB.hasSender()) {
                     sender = msgPB.getSender().getName();
@@ -72,8 +72,8 @@ function ClientChat(url, name=url)
     // 收到消息响应
     this.registerRspHandle(GServer.Command.RECVMSG, (rspcode, message) => {
         if(rspcode == GServer.RspCode.SUCCESS) {
-            let msgPB = proto.gserver.MessagePB.deserializeBinary(message);
-            if (msgPB.getDatatype() == proto.gserver.MessagePB.DataType.DT_TEXT) {
+            let msgPB = proto.gserver.protobuf.MessagePB.deserializeBinary(message);
+            if (msgPB.getDatatype() == proto.gserver.protobuf.MessagePB.DataType.DT_TEXT) {
                 let sender = "Unkonw";
                 if(msgPB.hasSender()) {
                     sender = msgPB.getSender().getName();
@@ -107,7 +107,7 @@ function ClientGame(url, name=url)
     }
     
     this.registerCommand("login", async (name, password) => {
-        let playerpb = new proto.gserver.PlayerPB();
+        let playerpb = new proto.gserver.protobuf.PlayerPB();
         playerpb.setName(name);
         playerpb.setPassword(password);
         let buf = playerpb.serializeBinary();
@@ -123,7 +123,7 @@ function ClientGame(url, name=url)
         }
     });
     this.registerCommand("createroom", async (name, password, description) => {
-        let roompb = new proto.gserver.RoomPB();
+        let roompb = new proto.gserver.protobuf.RoomPB();
         roompb.setName(name);
         roompb.setDescription(description);
         roompb.setPassword(password);
@@ -134,7 +134,7 @@ function ClientGame(url, name=url)
         let name = "test room name";
         let description = "";
         let password = "";
-        let roompb = new proto.gserver.RoomPB();
+        let roompb = new proto.gserver.protobuf.RoomPB();
         roompb.setId(roomId);
         roompb.setName(name);
         roompb.setDescription(description);
@@ -143,13 +143,13 @@ function ClientGame(url, name=url)
         this.send(GServer.Command.UPDATEROOM, buf);
     });
     this.registerCommand("joinroom", async (roomId) => {
-        let roompb = new proto.gserver.RoomPB();
+        let roompb = new proto.gserver.protobuf.RoomPB();
         roompb.setId(roomId);
         let buf = roompb.serializeBinary();
         this.send(GServer.Command.JOINROOM, buf);
     });
     this.registerCommand("exitroom", async (roomId) => {
-        let roompb = new proto.gserver.RoomPB();
+        let roompb = new proto.gserver.protobuf.RoomPB();
         roompb.setId(roomId);
         let buf = roompb.serializeBinary();
         this.send(GServer.Command.EXITROOM, buf);
@@ -158,7 +158,7 @@ function ClientGame(url, name=url)
         this.send(GServer.Command.ROOMLIST, new Uint8Array());
     });
     this.registerCommand("getroominfo", async (roomId) => {
-        let roompb = new proto.gserver.RoomPB();
+        let roompb = new proto.gserver.protobuf.RoomPB();
         roompb.setId(roomId);
         let buf = roompb.serializeBinary();
         this.send(GServer.Command.ROOMINFO, buf);
@@ -177,7 +177,7 @@ function ClientGame(url, name=url)
     this.registerRspHandle(GServer.Command.ROOMLIST, (rspcode, message) => {
         if(GServer.RspCode.SUCCESS == rspcode) {
             console.log("[Client](", this.name, ") 获取房间列表成功");
-            let roomPBList = proto.gserver.RoomPBList.deserializeBinary(message).getRoompbList();
+            let roomPBList = proto.gserver.protobuf.RoomPBList.deserializeBinary(message).getRoompbList();
             if(roomPBList.length == 0) {
                 showMsg("房间列表为空", "warning", "menuViewRoomMsgDiv")
             } else {		
@@ -192,7 +192,7 @@ function ClientGame(url, name=url)
     this.registerRspHandle(GServer.Command.ROOMINFO, (rspcode, message) => {
         if(GServer.RspCode.SUCCESS == rspcode) {
             console.log("[Client](", this.name, ") 获取房间信息成功");
-            let roomPB = proto.gserver.RoomPB.deserializeBinary(message);
+            let roomPB = proto.gserver.protobuf.RoomPB.deserializeBinary(message);
             console.log(roomPB)
             showRoomInfo(roomPB)
         } else {
@@ -204,7 +204,7 @@ function ClientGame(url, name=url)
     this.registerRspHandle(GServer.Command.JOINROOM, (rspcode, message) => {
         console.log("[Client](", this.name, ") 加入房间成功");
         if(GServer.RspCode.SUCCESS == rspcode) {
-            let roomPB = proto.gserver.RoomPB.deserializeBinary(message);
+            let roomPB = proto.gserver.protobuf.RoomPB.deserializeBinary(message);
             console.log(roomPB);
         } else {
             let errmsg = `加入房间失败：${UTF8Bytes2String(message)}`
@@ -321,7 +321,7 @@ function ClientGServer(name) {
     this.registerRspHandle(GServer.Command.CREATEROOM, (rspcode, message) => {
         console.log("[Client](", this.name, ") 创建房间成功");
         if(GServer.RspCode.SUCCESS == rspcode) {
-            let roomPB = proto.gserver.RoomPB.deserializeBinary(message);
+            let roomPB = proto.gserver.protobuf.RoomPB.deserializeBinary(message);
             console.log(roomPB);
             showMsg(`创建房间[${roomPB.getName()}]成功`, 'success', 'menuCreateRoomMsgDiv')
         } else {
@@ -330,12 +330,12 @@ function ClientGServer(name) {
     });
     this.registerRspHandle(GServer.Command.UPDATEROOM, (rspcode, message) => {
         console.log("[Client](", this.name, ") 修改房间信息成功");
-        let roomPB = proto.gserver.RoomPB.deserializeBinary(message);
+        let roomPB = proto.gserver.protobuf.RoomPB.deserializeBinary(message);
         console.log(roomPB);
     });
     this.registerRspHandle(GServer.Command.JOINROOM, (rspcode, message) => {
         console.log("[Client](", this.name, ") 加入房间成功");
-        let roomPB = proto.gserver.RoomPB.deserializeBinary(message);
+        let roomPB = proto.gserver.protobuf.RoomPB.deserializeBinary(message);
         console.log(roomPB);
     });
     this.registerRspHandle(GServer.Command.EXITROOM, (rspcode, message) => {
