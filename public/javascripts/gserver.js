@@ -366,6 +366,10 @@ $(function() {
     $('#roomList').on('click', 'a', (e) => {
         clientGame.runCommand('getroominfo', $(e.target).data('id'))
     })
+
+    $('#btnJoinRoom').click((e) => {
+        clientGame.runCommand('joinroom', $(e.target).data('rid'))
+    })
     
     getUserInfo()
 })
@@ -435,8 +439,10 @@ async function showMsg(msg, catalogy='danger', div_id='top_div', prepend=false) 
  * @param {RoomPB} roomPB 房间信息
  */
 async function showRoomInfo(roomPB) {
-    let roomInfoHtml = `<p>名称：${roomPB.getName()}</p><p>房主：${roomPB.getOwner().getName()}</p><p>描述：${roomPB.getDescription()}</p>`
-    $('#roomDetailInfo').html(roomInfoHtml)
+    $('#roomName').text(`房间名：${roomPB.getName()}`)
+    $('#roomOwnerName').text(`房主名：${roomPB.getOwner().getName()}`)
+    $('#roomDesc').text(`描述：${roomPB.getDescription()}`)
+    $('#btnJoinRoom').data('rid', roomPB.getId())
 }
 
 /**
