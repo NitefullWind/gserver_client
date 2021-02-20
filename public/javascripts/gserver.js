@@ -439,9 +439,9 @@ async function showMsg(msg, catalogy='danger', div_id='top_div', prepend=false) 
  * @param {RoomPB} roomPB 房间信息
  */
 async function showRoomInfo(roomPB) {
-    $('#roomName').text(`房间名：${roomPB.getName()}`)
-    $('#roomOwnerName').text(`房主名：${roomPB.getOwner().getName()}`)
-    $('#roomDesc').text(`描述：${roomPB.getDescription()}`)
+    $('#roomDetailName').text(`房间名：${roomPB.getName()}`)
+    $('#roomDetailOwnerName').text(`房主名：${roomPB.getOwner().getName()}`)
+    $('#roomDetailDesc').text(`描述：${roomPB.getDescription()}`)
     $('#btnJoinRoom').data('rid', roomPB.getId())
 }
 
