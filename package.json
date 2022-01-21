@@ -14,7 +14,7 @@
     "google-protobuf": "^3.10.0",
     "http-errors": "~1.6.3",
     "jade": "~1.11.0",
-    "log4js": "^5.2.2",
+    "log4js": "^6.4.0",
     "morgan": "~1.9.1",
     "net": "^1.0.2",
     "redis": "^2.8.0",
